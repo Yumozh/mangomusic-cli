@@ -20,16 +20,21 @@ public class AlbumDao {
 
     public List<Album> getAlbumsByArtist(int artistId) {
         List<Album> albums = new ArrayList<>();
-        String query = "SELECT al.album_id, al.artist_id, al.title, al.release_year, ar.name as artist_name " +
-                "FROM albums al " +
-                "JOIN artists ar ON al.artist_id = ar.artist_id " +
-                "WHERE al.artist_id = ? " +
-                "ORDER BY al.release_year DESC";
+        String query = """
+                SELECT
+                album_id,
+                albums.artist_id,
+                title,
+                release_year,
+                artists.name AS artist_name
+            FROM albums
+            JOIN artists ON albums.artist_id = artists.artist_id
+            WHERE albums.artist_id = ?
+            ORDER BY albums.release_year DESC;
+            """;
 
-        try {
-            Connection connection = dataManager.getConnection();
-
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
+        try (Connection connection = dataManager.getConnection();
+            PreparedStatement statement = connection.prepareStatement(query)) {
 
                 statement.setInt(1, artistId);
 
@@ -39,15 +44,15 @@ public class AlbumDao {
                         int artId = results.getInt("artist_id");
                         String title = results.getString("title");
                         int releaseYear = results.getInt("release_year");
-                        String artistName = results.getString("artist");
+                        String artistName = results.getString("artist_name");
 
                         albums.add(new Album(albumId, artId, title, releaseYear, artistName));
                     }
                 }
             }
 
-        } catch (SQLException e) {
-            System.err.println("Error getting albums for artist: " + e.getMessage());
+        catch (SQLException e) {
+            System.err.println("SQLException in AlbumDao.getAlbumsByArtist(): " + e.getMessage());
             e.printStackTrace();
         }
 
