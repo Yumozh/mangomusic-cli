@@ -64,14 +64,17 @@ public class AlbumDao {
         String query = "SELECT al.album_id, al.artist_id, al.title, al.release_year, ar.name as artist_name " +
                 "FROM albums al " +
                 "JOIN artists ar ON al.artist_id = ar.artist_id " +
-                "WHERE ar.primary_genre = '" + genre + "' " +
+                "WHERE ar.primary_genre = ?" +
                 "ORDER BY al.title";
 
-        try {
+        try (
             Connection connection = dataManager.getConnection();
+            PreparedStatement statement = connection.prepareStatement(query)){
 
-            try (Statement statement = connection.createStatement();
-                 ResultSet results = statement.executeQuery(query)) {
+            statement.setString(1, genre);
+
+            try (ResultSet results = statement.executeQuery(query))
+            {
 
                 while (results.next()) {
                     int albumId = results.getInt("album_id");
