@@ -103,18 +103,16 @@ public class AlbumDao {
                 "WHERE al.title LIKE ? " +
                 "ORDER BY al.title";
 
-        try {
-            Connection connection = dataManager.getConnection();
+        try (Connection connection = dataManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)){
 
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
 
                 statement.setString(1, "%" + searchTerm + "%");
 
                 try (ResultSet results = statement.executeQuery()) {
                     while (results.next()) {
                         int albumId = results.getInt("album_id");
-                        String artistIdStr = results.getString("artist_id");
-                        int artistId = Integer.parseInt(artistIdStr);
+                        int artistId = results.getInt("artist_id");
                         String title = results.getString("title");
                         int releaseYear = results.getInt("release_year");
                         String artistName = results.getString("artist_name");
@@ -122,7 +120,6 @@ public class AlbumDao {
                         albums.add(new Album(albumId, artistId, title, releaseYear, artistName));
                     }
                 }
-            }
 
         } catch (SQLException e) {
             System.err.println("Error searching for albums: " + e.getMessage());
